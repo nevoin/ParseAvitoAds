@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Threading;
 
+
 namespace ParseAvitoAds
 {
 	public partial class Form1 : Form
@@ -13,6 +14,10 @@ namespace ParseAvitoAds
 		const string avitoUrlBegin = "https://www.avito.ru";
 		const string parseOneAdsTitle1 = "<div class=\"sticky-header-prop sticky-header-title\">";
 		const string parseOneAdsTitle2 = "</div>";
+		const string parseOneAdsBody1 = "<div class=\"item-description-text\" itemprop=\"description\">";
+		const string parseOneAdsBody2 = "</div>";
+		const string parseOneAdsPic1 = "avito.item.image = '";
+		const string parseOneAdsPic2 = "';";
 
 		string[] urls = new string[100];
 		Ads[] parsedAds = new Ads[100];
@@ -26,10 +31,9 @@ namespace ParseAvitoAds
 		public class Ads
 		{
 			public string title="";
-			//string body = "";
-			//string pic = "";
+			public string body = "";
+			public string pic = "";
 			//string phone = "";
-			//string url = "";
 		}
 
 		public static string GetHtml(string url)
@@ -41,6 +45,7 @@ namespace ParseAvitoAds
 			{
 				webClient.Encoding = System.Text.Encoding.UTF8;
 				webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12");
+				webClient.Headers.Add("Referer", "https://yandex.ru/");
 				try
 				{
 					return webClient.DownloadString(fullurl);
@@ -53,29 +58,55 @@ namespace ParseAvitoAds
 		}
 		
 		//parse each ads - title/body/phone/pic
+		//wrong parse for Company or Vip ads?
 		public void ParseAllUrls(string[] urls, byte urlsCount)
 		{
 			Random r = new Random();
 			int ind1, ind2 = 0;
 			byte sleepAntiBan = 0;
+			string html, tmpHtml = "";
 
 
 			//for (int i=0; i < urlsCount; i++)
 			for (int i = 0; i < 5; i++)
 			{
 				parsedAds[i] = new Ads();
+
 				sleepAntiBan = Convert.ToByte(r.Next(10));
-				startButton.Text = "Sleep " + sleepAntiBan.ToString() + " seconds";
+				startButton.Text = "Sleep " + sleepAntiBan.ToString() + " seconds, "+(urlsCount-i).ToString()+"urls left";
 				Application.DoEvents();
 				Thread.Sleep(sleepAntiBan * 1000); //in seconds
-				string html1 = GetHtml(urls[i]);
-				ind1 = html1.IndexOf(parseOneAdsTitle1);
+
+				html=tmpHtml = GetHtml(urls[i]);
+				//parse title
+				ind1 = tmpHtml.IndexOf(parseOneAdsTitle1);
 				if (ind1>0)
 				{
-					html1 = html1.Substring(ind1 + parseOneAdsTitle1.Length);
-					ind2 = html1.IndexOf(parseOneAdsTitle2);
-					if (ind2 > 0) parsedAds[i].title = html1.Substring(0, ind2);
+					tmpHtml = tmpHtml.Substring(ind1 + parseOneAdsTitle1.Length);
+					ind2 = tmpHtml.IndexOf(parseOneAdsTitle2);
+					if (ind2 > 0) parsedAds[i].title = tmpHtml.Substring(2, ind2-4);
 				}
+
+				//parse body
+				ind1 = tmpHtml.IndexOf(parseOneAdsBody1);
+				if (ind1 > 0)
+				{
+					tmpHtml = tmpHtml.Substring(ind1 + parseOneAdsBody1.Length);
+					ind2 = tmpHtml.IndexOf(parseOneAdsBody2);
+					if (ind2 > 0) parsedAds[i].body = tmpHtml.Substring(3, ind2 - 4);
+				}
+
+				//parse pic url
+				ind1 = html.IndexOf(parseOneAdsPic1);
+				if (ind1 > 0)
+				{
+					tmpHtml = html.Substring(ind1 + parseOneAdsPic1.Length);
+					ind2 = tmpHtml.IndexOf(parseOneAdsPic2);
+					if (ind2 > 0) parsedAds[i].pic = "https:"+tmpHtml.Substring(0, ind2).Replace("208x156", "640x480");
+				}
+
+				File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+"\n"+ parsedAds[i].body+"\n"+
+					parsedAds[i].pic);
 			}
 		}
 
@@ -115,7 +146,6 @@ namespace ParseAvitoAds
 		private void startButton_Click(object sender, EventArgs e)
 		{
 			ParseMainPage(ref urls, ref urlsCount);
-			File.WriteAllText("allurls.txt",parsedAds.ToString());
 			ParseAllUrls(urls, urlsCount);
 
 			Environment.Exit(0);
