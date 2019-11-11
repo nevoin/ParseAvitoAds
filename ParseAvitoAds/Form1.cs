@@ -7,6 +7,13 @@ namespace ParseAvitoAds
 {
 	public partial class Form1 : Form
 	{
+		string startUrl = "https://www.avito.ru/moskva?radius=5&geoCoords=55.733939038966945%2C37.6406529148446";
+		string parseStr1 = "data-item-url=\"";
+		string avitoUrlBegin = "https://www.avito.ru";
+		string[] urls = new string[100];
+		Ads[] parsedAds = new Ads[100];
+		byte urlsCount = 0;
+
 		public Form1()
 		{
 			InitializeComponent();
@@ -14,10 +21,11 @@ namespace ParseAvitoAds
 
 		public class Ads
 		{
-			string title = "";
-			string body = "";
-			string pic = "";
-			string phone = "";
+			//string title = "";
+			//string body = "";
+			//string pic = "";
+			//string phone = "";
+			//string url = "";
 		}
 
 		public static string GetHtml(string url)
@@ -40,24 +48,21 @@ namespace ParseAvitoAds
 			}
 		}
 
-		private void startButton_Click(object sender, EventArgs e)
+		public void ParseAllUrls()
 		{
-			string startUrl = "https://www.avito.ru/moskva?radius=5&geoCoords=55.733939038966945%2C37.6406529148446";
-			string parseStr1 = "data-item-url=\"";
-			string avitoUrlStart = "https://www.avito.ru";
+		}
 
+		public void ParseMainPage(ref string [] urls, ref byte urlsCount)
+		{
 			//loading main Avito page with recent ads
 			startButton.Text = "require main avito page..";
 			Application.DoEvents();
 			string html1 = GetHtml(startUrl);
-			File.WriteAllText("html.txt", html1);
-			startButton.Text = "main avito page is loaded and save";
+			startButton.Text = "main avito page is loaded";
 			Application.DoEvents();
 
 			string adsUrl = "init";
 			int ind1, ind2 = 1;
-			string[] urls = new string[100];
-			byte urlsCount = 0;
 			bool goParse = true;
 
 			//parsing ads urls from main page
@@ -70,15 +75,23 @@ namespace ParseAvitoAds
 					ind2 = html1.IndexOf("\"");
 					if (ind2 > 0)
 					{
-						adsUrl = avitoUrlStart + html1.Substring(0, ind2);
+						adsUrl = avitoUrlBegin + html1.Substring(0, ind2);
 						urls[urlsCount] = adsUrl;
 						urlsCount++;
 					}
 				}
 				else goParse = false;
 			}
+		}
+ 
 
-			File.WriteAllLines("html.txt", urls);
+		private void startButton_Click(object sender, EventArgs e)
+		{
+			ParseMainPage(ref urls, ref urlsCount);
+			File.WriteAllLines("allurls.txt", urls);
+
+			ParseAllUrls();
+
 			Environment.Exit(0);
 		}
 	}
