@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Threading;
 using System.Drawing;
+using System.Diagnostics;
 
 
 // Copyright(C) 2019 Dmitriy Slabnov
@@ -39,6 +40,15 @@ namespace ParseAvitoAds
 			public string body = "";
 			public string pic = "";
 			//string phone = "";
+		}
+
+		public void ExecProg(string path)
+		{
+			Process iStartProcess = new Process(); 
+			iStartProcess.StartInfo.FileName = @path; // path+name
+			//iStartProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden; // hidden start
+			iStartProcess.Start(); 
+			//iStartProcess.WaitForExit(30 * 1000); // wait in ms
 		}
 
 		public static string GetHtml(string url)
@@ -115,6 +125,7 @@ namespace ParseAvitoAds
 
 				//trim avito logo and save
 				pictureBox1.Load(parsedAds[i].pic);
+				Application.DoEvents();
 				Bitmap bmp = pictureBox1.Image as Bitmap;
 				Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height-(bmp.Height/100* trimPerc));
 				if (bmp != null)
@@ -125,7 +136,17 @@ namespace ParseAvitoAds
 						cropBmp.Save("ads" + i.ToString() + ".bmp");
 					}
 				}
-				Application.DoEvents();
+
+				//parse phone
+				ExecProg(urls[i]); // open page in current browser (tested in Chrome)
+				Thread.Sleep(20000); //waiting until page load
+
+				for (byte c=0;c<35;c++)
+				{
+					SendKeys.SendWait("{TAB}");
+				}
+				SendKeys.SendWait("{ENTER}");
+				
 			}
 		}
 
@@ -159,6 +180,7 @@ namespace ParseAvitoAds
 				}
 				else goParse = false;
 			}
+
 		}
  
 		private void startButton_Click(object sender, EventArgs e)
