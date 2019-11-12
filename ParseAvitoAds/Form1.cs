@@ -22,7 +22,7 @@ namespace ParseAvitoAds
 		const string parseOneAdsBody2 = "</div>";
 		const string parseOneAdsPic1 = "avito.item.image = '";
 		const string parseOneAdsPic2 = "';";
-		const byte picTrim = 14;//in percents - trim Avito logo
+		const byte trimPerc = 14;//in percents - trim Avito logo
 
 		string[] urls = new string[100];
 		Ads[] parsedAds = new Ads[100];
@@ -33,23 +33,6 @@ namespace ParseAvitoAds
 			InitializeComponent();
 		}
 
-	/*	public static Crop( Image image, Rectangle selection)
-		{
-			Bitmap bmp = image as Bitmap;
-
-			// Check if it is a bitmap:
-			if (bmp == null)
-				throw new ArgumentException("No valid bitmap");
-
-			// Crop the image:
-			Bitmap cropBmp = bmp.Clone(selection, bmp.PixelFormat);
-
-			// Release the resources:
-			image.Dispose();
-
-			return cropBmp;
-		}
- */
 		public class Ads
 		{
 			public string title="";
@@ -128,12 +111,21 @@ namespace ParseAvitoAds
 				}
 
 				//do not save ads with empty body
-				if (parsedAds[i].body.Length>0) File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+"\n"+ parsedAds[i].body+"\n"+
-					parsedAds[i].pic);
+				if (parsedAds[i].body.Length>0) File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+ "\n\n" + parsedAds[i].body+"\n");
 
 				//trim picture and save
 				pictureBox1.Load(parsedAds[i].pic);
-				int x=pictureBox1.Image.Width
+				int x = pictureBox1.Image.Width;
+				Bitmap bmp = pictureBox1.Image as Bitmap;
+				Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height-(bmp.Height/100* trimPerc));
+				if (bmp != null)
+				{
+					Bitmap cropBmp = bmp.Clone(rect, bmp.PixelFormat);
+					if (cropBmp != null)
+					{
+						cropBmp.Save("ads" + i.ToString() + ".bmp");
+					}
+				}
 				Application.DoEvents();
 			}
 		}
@@ -170,7 +162,6 @@ namespace ParseAvitoAds
 			}
 		}
  
-
 		private void startButton_Click(object sender, EventArgs e)
 		{
 			ParseMainPage(ref urls, ref urlsCount);
