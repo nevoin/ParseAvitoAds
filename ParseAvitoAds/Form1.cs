@@ -113,9 +113,8 @@ namespace ParseAvitoAds
 				//do not save ads with empty body
 				if (parsedAds[i].body.Length>0) File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+ "\n\n" + parsedAds[i].body+"\n");
 
-				//trim picture and save
+				//trim avito logo and save
 				pictureBox1.Load(parsedAds[i].pic);
-				int x = pictureBox1.Image.Width;
 				Bitmap bmp = pictureBox1.Image as Bitmap;
 				Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height-(bmp.Height/100* trimPerc));
 				if (bmp != null)
