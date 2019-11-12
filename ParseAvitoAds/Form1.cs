@@ -146,8 +146,7 @@ namespace ParseAvitoAds
 				{
 					SendKeys.SendWait("{TAB}");
 				}
-				SendKeys.SendWait("{ENTER}");
-				
+				SendKeys.SendWait("{ENTER}");				
 			}
 		}
 
