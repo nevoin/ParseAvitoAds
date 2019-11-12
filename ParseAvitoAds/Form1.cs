@@ -24,6 +24,7 @@ namespace ParseAvitoAds
 		const string parseOneAdsPic1 = "avito.item.image = '";
 		const string parseOneAdsPic2 = "';";
 		const byte trimPerc = 14;//in percents - trim Avito logo
+		const string link2Phone = "#login?s=p";
 
 		string[] urls = new string[100];
 		Ads[] parsedAds = new Ads[100];
@@ -138,7 +139,7 @@ namespace ParseAvitoAds
 				}
 
 				//parse phone
-				ExecProg(urls[i]); // open page in current browser (tested in Chrome)
+				ExecProg(urls[i]); // open page in current browser (tested  in Chrome)
 				Thread.Sleep(20000); //waiting until page load
 
 				for (byte c=0;c<35;c++)
