@@ -3,10 +3,14 @@ using System.Net;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Drawing;
 
+
+// Copyright(C) 2019 Dmitriy Slabnov
 
 namespace ParseAvitoAds
 {
+
 	public partial class Form1 : Form
 	{
 		const string startUrl = "https://www.avito.ru/moskva?radius=5&geoCoords=55.733939038966945%2C37.6406529148446";
@@ -18,6 +22,7 @@ namespace ParseAvitoAds
 		const string parseOneAdsBody2 = "</div>";
 		const string parseOneAdsPic1 = "avito.item.image = '";
 		const string parseOneAdsPic2 = "';";
+		const byte picTrim = 14;//in percents - trim Avito logo
 
 		string[] urls = new string[100];
 		Ads[] parsedAds = new Ads[100];
@@ -28,6 +33,23 @@ namespace ParseAvitoAds
 			InitializeComponent();
 		}
 
+	/*	public static Crop( Image image, Rectangle selection)
+		{
+			Bitmap bmp = image as Bitmap;
+
+			// Check if it is a bitmap:
+			if (bmp == null)
+				throw new ArgumentException("No valid bitmap");
+
+			// Crop the image:
+			Bitmap cropBmp = bmp.Clone(selection, bmp.PixelFormat);
+
+			// Release the resources:
+			image.Dispose();
+
+			return cropBmp;
+		}
+ */
 		public class Ads
 		{
 			public string title="";
@@ -68,12 +90,12 @@ namespace ParseAvitoAds
 
 
 			//for (int i=0; i < urlsCount; i++)
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 10; i++)
 			{
 				parsedAds[i] = new Ads();
 
 				sleepAntiBan = Convert.ToByte(r.Next(10));
-				startButton.Text = "Sleep " + sleepAntiBan.ToString() + " seconds, "+(urlsCount-i).ToString()+"urls left";
+				startButton.Text = "Sleep " + sleepAntiBan.ToString() + " seconds, "+(urlsCount-i).ToString()+" urls left";
 				Application.DoEvents();
 				Thread.Sleep(sleepAntiBan * 1000); //in seconds
 
@@ -105,8 +127,14 @@ namespace ParseAvitoAds
 					if (ind2 > 0) parsedAds[i].pic = "https:"+tmpHtml.Substring(0, ind2).Replace("208x156", "640x480");
 				}
 
-				File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+"\n"+ parsedAds[i].body+"\n"+
+				//do not save ads with empty body
+				if (parsedAds[i].body.Length>0) File.WriteAllText("ads"+i.ToString()+".txt", parsedAds[i].title+"\n"+ parsedAds[i].body+"\n"+
 					parsedAds[i].pic);
+
+				//trim picture and save
+				pictureBox1.Load(parsedAds[i].pic);
+				int x=pictureBox1.Image.Width
+				Application.DoEvents();
 			}
 		}
 
